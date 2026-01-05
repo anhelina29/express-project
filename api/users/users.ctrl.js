@@ -3,9 +3,9 @@ const { randomUUID } = require('crypto');
 const users = [
     { id: 1, name: 'John' },
     { id: 2, name: 'Steve' },
-    { id: 3, name: 'Jan' },
-    { id: 4, name: 'Feb' },
-    { id: 5, name: 'Mar' },
+    { id: 3, name: 'Jane' },
+    { id: 4, name: 'Noah' },
+    { id: 5, name: 'Jack' },
 ]
 
 const getUsersHandler = (req, res) => {
