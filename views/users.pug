@@ -2,6 +2,7 @@ doctype html
 html
     head
         title #{title}
+        link(rel='icon', href='/favicon.ico')
         link(rel='stylesheet', href='/styles.css')
     body
         h1 Users list
@@ -9,7 +10,7 @@ html
             if user
                 p ID: #{user.id}
                 p Name: #{user.name}
-            else if users.length === 0
+            else if users && users.length === 0
                 p No users found
             else
                 each user in users

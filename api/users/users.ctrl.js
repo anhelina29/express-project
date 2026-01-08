@@ -1,38 +1,23 @@
 const { randomUUID } = require('crypto');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 let users = [
-    { id: 1, name: 'John Doe' },
-    { id: 2, name: 'Steve Jobs' },
-    { id: 3, name: 'Jane Doe' },
-    { id: 4, name: 'Noah Doe' },
-    { id: 5, name: 'Jack Doe' },
+    { id: 1, name: 'John Doe', email: 'john.doe@example.com', password: 'password123' },
+    { id: 2, name: 'Steve Jobs', email: 'steve.jobs@example.com', password: 'password123' },
+    { id: 3, name: 'Jane Doe', email: 'jane.doe@example.com', password: 'password123' },
+    { id: 4, name: 'Noah Doe', email: 'noah.doe@example.com', password: 'password123' },
+    { id: 5, name: 'Jack Doe', email: 'jack.doe@example.com', password: 'password123' },
 ]
 
 const getUsersHandler = (req, res) => {
     res.status(200).json({data: users});
 }
 
-const postUsersHandler = (req, res) => {
-    const { name } = req.body;
-    const newUser = {
-        id: randomUUID(),
-        name: name,
-    }
-
-    users.push(newUser)
-
-    res.status(201).json(newUser);
-}
-
 const getUsersByIdHandler = (req, res) => {
     const {id} = req.params;
     const user = users.find(user => user.id.toString() === id.toString());
     res.status(200).json({data: user});
-}
-
-const postUsersByIdHandler = (req, res) => {
-    const {id} = req.params;
-    res.status(200).json({data: `Post user by id - ${id}`});
 }
 
 const putUsersByIdHandler = (req, res) => {
@@ -44,7 +29,7 @@ const putUsersByIdHandler = (req, res) => {
         return res.status(404).json({data: `User with id ${userId} not found`});
     }
 
-    users.name = name
+    user.name = name
     res.status(200).json({data: user});
 }
 
@@ -57,15 +42,100 @@ const deleteUsersByIdHandler = (req, res) => {
     }
 
     users = users.filter(user => user.id.toString() !== userId.toString());
-    return res.status(200).json({data: `Delete user by id - ${id}`});
+    return res.status(200).json({data: `Delete user by id - ${userId}`});
+}
+
+const renderUsers = (req, res) => {
+    const data = {
+        title: 'Users',
+        users: users
+    }
+    res.render('users.pug', data);
+}
+
+const renderUsersById = (req, res) => {
+    const userId = req.params.id;
+    const user = users.find(user => user.id.toString() === userId.toString());
+    const data = {
+        title: 'Users',
+        user: user
+    }
+    res.render('users.pug', data);
+}
+
+const signUp = async (req, res) => {
+    const { name, email, password } = req.body;
+    const user = users.find(user => user.email.toString() === email.toString());
+
+    if (user) {
+        return res.status(400).json({ error: 'User already exists' });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+
+    const newUser = {
+        id: randomUUID(),
+        name: name,
+        email: email,
+        password: hash,
+    }
+
+    users.push(newUser)
+    return res.status(201).json(newUser)
+    
+}
+
+const login = async (req, res) => {
+    const { email, password } = req.body;
+
+    const user = users.find(user => user.email.toString() === email.toString());
+
+    if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+        return res.status(401).json({ error: 'Invalid password' });
+    }
+
+    const token = jwt.sign(
+        { 
+            id: user.id 
+        }, 
+        process.env.JWT_SECRET,
+        { 
+            expiresIn: '1h' 
+        }
+    );
+
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: false,
+        maxAge: 60 * 60 * 1000
+    });
+
+    return res.status(200).json({ user });
+}
+
+const logout = (req, res) => {
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: false,
+        maxAge: 60 * 60 * 1000
+    });
+    return res.status(200).json({ data: 'Logout successful' });
 }
 
 module.exports = {
-    users,
     getUsersHandler,
-    postUsersHandler,
     getUsersByIdHandler,
-    postUsersByIdHandler,
     putUsersByIdHandler,
     deleteUsersByIdHandler,
+    renderUsers,
+    renderUsersById,
+    signUp,
+    login,
+    logout
 }

@@ -57,12 +57,32 @@ const deleteProductByIdHandler = (req, res) => {
     return res.status(200).json({data: `Delete product by id - ${id}`})
 }
 
+const renderProducts = (req, res) => {
+    const data = {
+        title: 'Products',
+        product: null,
+        products: products
+    }
+    res.render('products.ejs', data);
+}
+
+const renderProductsById = (req, res) => {
+    const productId = req.params.id
+    const product = products.find(product => product.id.toString() === productId.toString());
+    const data = {
+        title: 'Products',
+        product: product,
+    }
+    res.render('products.ejs', data);
+}
+
 module.exports = {
-    products,
     getProductsHandler,
     postProductsHandler,
     getProductByIdHandler,
     postProductByIdHandler,
     putProductByIdHandler,
     deleteProductByIdHandler,
+    renderProducts,
+    renderProductsById
 }
