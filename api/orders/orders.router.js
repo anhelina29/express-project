@@ -7,7 +7,10 @@ router.get('/render', ordersCtrl.renderOrders)
 router.get('/render/:id', ordersCtrl.renderOrdersById)
 router.get('/:id', ordersCtrl.getOrdersByIdHandler)
 router.post('/', ordersCtrl.postOrdersHandler)
+router.post('/many', ordersCtrl.createOrdersHandler)
+router.put('/many', ordersCtrl.updateOrdersHandler)
 router.put('/:id', ordersCtrl.putOrdersByIdHandler)
+router.delete('/many', ordersCtrl.deleteOrdersHandler)
 router.delete('/:id', ordersCtrl.deleteOrderByIdHandler)
 
 module.exports = router

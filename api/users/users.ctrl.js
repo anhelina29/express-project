@@ -1,5 +1,3 @@
-const { randomUUID } = require('crypto');
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const UserModel = require('../../models/users');
 
@@ -24,18 +22,18 @@ const putUsersByIdHandler = async (req, res) => {
     }
 
     user.name = name
+    await user.save()
+    
     res.status(200).json({ data: user });
 }
 
 const deleteUsersByIdHandler = async (req, res) => {
     const userId = req.params.id
-    const user = await UserModel.findById(userId);
+    const user = await UserModel.findByIdAndDelete(userId);
 
     if (!user) {
         return res.status(404).json({ error: `User with id ${userId} not found` });
     }
-
-    await UserModel.deleteOne({ _id: userId })
 
     return res.status(200).json({ data: `Delete user by id - ${userId}` });
 }

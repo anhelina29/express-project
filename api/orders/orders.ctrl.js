@@ -1,7 +1,14 @@
 const OrderModel = require('../../models/orders');
 
+const projection = {
+    userId: 1,
+    products: 1,
+    totalPrice: 1,
+    status: 1,
+}
+
 const getOrdersHandler = async (req, res) => {
-    const orders = await OrderModel.find()
+    const orders = await OrderModel.find({totalPrice: {$gt: 500}}, projection)
     res.status(200).json({data: orders})
 }
 
@@ -28,6 +35,11 @@ const postOrdersHandler = async (req, res) => {
     res.status(201).json({data: newOrder})
 }
 
+const createOrdersHandler = async (req, res) => {
+    const orders = await OrderModel.insertMany(req.body)
+    res.status(201).json({data: orders})
+}
+
 const putOrdersByIdHandler = async (req, res) => {
     const orderId = req.params.id;
     const { status } = req.body
@@ -38,22 +50,31 @@ const putOrdersByIdHandler = async (req, res) => {
     }
     
     order.status = status
+    await order.save()
     
     res.status(200).json({data: order})
 }
 
-const deleteOrderByIdHandler = async (req, res) => {
-    orderId = req.params.id;
+const updateOrdersHandler = async (req, res) => {
+    const orders = await OrderModel.updateMany({status: 'pending'}, {status: 'confirmed'})
+    res.status(200).json({data: 'Status of orders updated'})
+}
 
-    const order = await OrderModel.findById(orderId)
+const deleteOrderByIdHandler = async (req, res) => {
+    const orderId = req.params.id;
+
+    const order = await OrderModel.findByIdAndDelete(orderId)
 
     if (!order) {
-        return res.status(404).json({ data: `Order with id ${ordertId} not found`})
+        return res.status(404).json({ data: `Order with id ${orderId} not found`})
     }
 
-    await OrderModel.deleteOne({ _id: orderId })
-
     return res.status(200).json({ data: `Order with id ${orderId} deleted`})
+}
+
+const deleteOrdersHandler = async (req, res) => {
+    const orders = await OrderModel.deleteMany({status: 'cancelled'})
+    res.status(200).json({data: 'Orders with status "cancelled" deleted'})
 }
 
 const renderOrders = async (req, res) => {
@@ -85,8 +106,11 @@ module.exports = {
     getOrdersHandler,
     getOrdersByIdHandler,
     postOrdersHandler,
+    createOrdersHandler,
     putOrdersByIdHandler,
+    updateOrdersHandler,
     deleteOrderByIdHandler,
+    deleteOrdersHandler,
     renderOrders,
     renderOrdersById
 }
